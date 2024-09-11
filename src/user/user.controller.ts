@@ -7,9 +7,6 @@ import { UserDataResponse } from 'src/types/user.types';
 export class UserController {
     private static readonly validAgentTokens = ['eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9tb2JpbGVwaG9uZSI6InN1cGVyYWRtaW4iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJCdXNpbmVzcyIsImV4cCI6MTcxNzk4Njc3N30.JpaLVnT8SwMXzLntG_BzWF7TmRkEHdTMVCaj0f8AP9M', 'valid-agent-token-2'];
     private static readonly validNumbers = ['01010101010', '01111111111'];
-    private static checkNumber(number: string): boolean {
-        return this.validNumbers.includes(number);
-    }
 
     @Post('get-user-data')
     getUserData(@Body() userData: { mobileNumber: string }, @Headers('authorization') authHeader: string): GenericResponseDto<UserDataResponse> {
