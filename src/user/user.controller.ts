@@ -1,14 +1,18 @@
-import { Controller, Post, Body, Headers, UnauthorizedException } from '@nestjs/common';
-import { GenericResponseDto } from 'src/Common/generic-response.dto';
-import { UserDataResponse } from 'src/types/user.types';
+import { Controller, Post, Body, Headers, UnauthorizedException, HttpCode } from '@nestjs/common';
+import { GenericResponseDto } from '../Common/generic-response.dto';
+import { UserDataResponse } from '../types/user.types';
+import { UpdateUserDataDto } from './dto/update-user-data.dto';
+import { ReuploadNidDto } from './dto/reupload-nid.dto';
 
 
 @Controller('api/user')
 export class UserController {
     private static readonly validAgentTokens = ['eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9tb2JpbGVwaG9uZSI6InN1cGVyYWRtaW4iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJCdXNpbmVzcyIsImV4cCI6MTcxNzk4Njc3N30.JpaLVnT8SwMXzLntG_BzWF7TmRkEHdTMVCaj0f8AP9M', 'valid-agent-token-2'];
     private static readonly validNumbers = ['01010101010', '01111111111'];
+    private static readonly validUserTokens = ['ValidUserToken1', 'ValidUserToken2'];
 
     @Post('get-user-data')
+    @HttpCode(200)
     getUserData(@Body() userData: { mobileNumber: string }, @Headers('authorization') authHeader: string): GenericResponseDto<UserDataResponse> {
         // Check for valid agent token
         const token = authHeader?.split(' ')[1];
@@ -42,5 +46,31 @@ export class UserController {
         else {
             return new GenericResponseDto(false, "invalid mobile number", null);
         }
+    }
+
+    @Post('update-user-data')
+    updateUserData(@Body() updateData: UpdateUserDataDto, @Headers('authorization') authHeader: string): GenericResponseDto<boolean> {
+        const token = authHeader?.split(' ')[1];
+        if (!token || !UserController.validAgentTokens.includes(token)) {
+            throw new UnauthorizedException();
+        }
+
+        if (!updateData.userToken || !UserController.validUserTokens.includes(updateData.userToken)) {
+            return new GenericResponseDto(false, "invalid user token", false);
+        }
+        return new GenericResponseDto(true, null, true);
+    }
+
+    @Post('reupload-nid')
+    ReuploadNid(@Body() updateData: ReuploadNidDto, @Headers('authorization') authHeader: string): GenericResponseDto<boolean> {
+        const token = authHeader?.split(' ')[1];
+        if (!token || !UserController.validAgentTokens.includes(token)) {
+            throw new UnauthorizedException();
+        }
+
+        if (!updateData.userToken || !UserController.validUserTokens.includes(updateData.userToken)) {
+            return new GenericResponseDto(false, "invalid user token", false);
+        }
+        return new GenericResponseDto(true, null, true);
     }
 }

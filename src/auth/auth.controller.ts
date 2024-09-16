@@ -1,6 +1,6 @@
-import { Controller, Post, Body } from '@nestjs/common';
-import { GenericResponseDto } from 'src/Common/generic-response.dto';
-import { OtpValidationResponse } from 'src/types/auth.types';
+import { Controller, Post, Body, HttpCode } from '@nestjs/common';
+import { GenericResponseDto } from '../Common/generic-response.dto';
+import { OtpValidationResponse } from '../types/auth.types';
 
 
 @Controller('api/auth')
@@ -14,6 +14,7 @@ export class AuthController {
 
 
     @Post('login')
+    @HttpCode(200)
     login(@Body() loginDto: { mobileNumber: string }): GenericResponseDto<boolean> {
 
         const isNumberValid = AuthController.checkNumber(loginDto.mobileNumber);
@@ -26,6 +27,7 @@ export class AuthController {
     }
 
     @Post('validate-otp')
+    @HttpCode(200)
     validateOtp(@Body() otpData: { otp: string; mobileNumber: string }): GenericResponseDto<OtpValidationResponse> {
         const isValid = AuthController.validOtps.includes(otpData.otp) &&
             AuthController.validNumbers.includes(otpData.mobileNumber);
@@ -46,6 +48,7 @@ export class AuthController {
         }
     }
     @Post('resend-otp')
+    @HttpCode(200)
     resendOtp(@Body() resendData: { mobileNumber: string }): GenericResponseDto<boolean> {
         const isValidMobileNumber = AuthController.validNumbers.includes(resendData.mobileNumber);
 
