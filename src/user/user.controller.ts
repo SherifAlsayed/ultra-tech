@@ -5,6 +5,7 @@ import { UpdateUserDataDto } from './dto/update-user-data.dto';
 import { ReuploadNidDto } from './dto/reupload-nid.dto';
 import { Response } from 'express';
 import { PdfGeneratorService } from '../pdf/pdf-generator.service';
+import { UserService } from '../core-system/user.service';
 
 
 
@@ -14,58 +15,36 @@ export class UserController {
     private static readonly validNumbers = ['01010101010', '01111111111'];
     private static readonly validUserTokens = ['ValidUserToken1', 'ValidUserToken2'];
 
-    constructor(private readonly pdfGeneratorService: PdfGeneratorService) {}
+    constructor(private readonly pdfGeneratorService: PdfGeneratorService, private readonly userService: UserService) { }
 
 
     @Post('get-user-data')
     @HttpCode(200)
-    getUserData(@Body() userData: { mobileNumber: string }, @Headers('authorization') authHeader: string): GenericResponseDto<UserDataResponse> {
+    async getUserData(@Body() userData: { mobileNumber: string }, @Headers('authorization') authHeader: string): Promise<GenericResponseDto<UserDataResponse>> {
         // Check for valid agent token
         const token = authHeader?.split(' ')[1];
         if (!token || !UserController.validAgentTokens.includes(token)) {
             throw new UnauthorizedException();
         }
-        const isValid = UserController.validNumbers.includes(userData.mobileNumber);
-
-        if (isValid) {
-            const response: UserDataResponse = {
-                ocrNidData: {
-                    arabicName: 'محمد أحمد',
-                    englishName: 'Mohammed Ahmed',
-                    nidNumber: '1234567890',
-                    nationality: 'Egyptian',
-                    address: 'Cairo, Egypt',
-                    gender: 'Male',
-                    workOccupation: 'Engineer',
-                    workAddress: 'Tech Company, Alexandria',
-                    birthdate: '1990-01-01',
-                    placeOfBirth: 'Alexandria',
-                    phoneNumber: '01234567890'
-                },
-                isTopup: true,
-                nidFrontUrl: 'https://support.fxgm.com/hc/article_attachments/360007170598/ID-front-EN.png',
-                nidBackUrl: 'https://support.fxgm.com/hc/article_attachments/360007088117/ID-back-EN.png',
-                userToken: 'user-token-12345'
-            };
-            return new GenericResponseDto(true, null, response);
-        }
-        else {
-            return new GenericResponseDto(false, "invalid mobile number", null);
+        try {
+            return await this.userService.profile(userData.mobileNumber, 'MOBILE')
+        } catch (error) {
+            return new GenericResponseDto(false, "Internal Server Error", null);
         }
     }
 
     @Post('update-user-data')
     @HttpCode(200)
-    updateUserData(@Body() updateData: UpdateUserDataDto, @Headers('authorization') authHeader: string): GenericResponseDto<boolean> {
+    async updateUserData(@Body() updateData: UpdateUserDataDto, @Headers('authorization') authHeader: string): Promise<GenericResponseDto<boolean>> {
         const token = authHeader?.split(' ')[1];
         if (!token || !UserController.validAgentTokens.includes(token)) {
             throw new UnauthorizedException();
         }
-
-        if (!updateData.userToken || !UserController.validUserTokens.includes(updateData.userToken)) {
-            return new GenericResponseDto(false, "invalid user token", false);
+        try {
+            return await this.userService.updateProfileData(updateData)
+        } catch (error) {
+            return new GenericResponseDto(false, "Internal Server Error", null);
         }
-        return new GenericResponseDto(true, null, true);
     }
 
     @Post('reupload-nid')
@@ -84,7 +63,7 @@ export class UserController {
 
     @Post('get-kyc-doc')
     @HttpCode(200)
-    GetKYCDoc(@Body() userData: { userToken: string }, @Headers('authorization') authHeader: string , @Res() res : Response): GenericResponseDto<boolean> {
+    GetKYCDoc(@Body() userData: { userToken: string }, @Headers('authorization') authHeader: string, @Res() res: Response): GenericResponseDto<boolean> | void {
         const token = authHeader?.split(' ')[1];
         if (!token || !UserController.validAgentTokens.includes(token)) {
             throw new UnauthorizedException();
@@ -95,21 +74,21 @@ export class UserController {
         // }
         const mockUserData = {
             ocrNidData: {
-              arabicName: 'محمد أحمد',
-              englishName: 'Mohammed Ahmed',
-              nidNumber: '1234567890',
-              nationality: 'Egyptian',
-              address: 'Cairo, Egypt',
-              gender: 'Male',
-              workOccupation: 'Engineer',
-              workAddress: 'Tech Company, Alexandria',
-              birthdate: '1990-01-01',
-              placeOfBirth: 'Alexandria',
-              phoneNumber: '01234567890',
+                arabicName: 'محمد أحمد',
+                englishName: 'Mohammed Ahmed',
+                nidNumber: '1234567890',
+                nationality: 'Egyptian',
+                address: 'Cairo, Egypt',
+                gender: 'Male',
+                workOccupation: 'Engineer',
+                workAddress: 'Tech Company, Alexandria',
+                birthdate: '1990-01-01',
+                placeOfBirth: 'Alexandria',
+                phoneNumber: '01234567890',
             },
-          };
-      
-          // Call the service to generate the PDF, and stream it back in the response
-          this.pdfGeneratorService.generateKycPdf(mockUserData, res);
-        }
+        };
+
+        // Call the service to generate the PDF, and stream it back in the response
+        this.pdfGeneratorService.generateKycPdf(mockUserData, res);
+    }
 }

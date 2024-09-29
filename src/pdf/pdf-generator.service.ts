@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import PDFkit from 'pdfkit';
+import * as PDFDocument from 'pdfkit';
 import { Response } from 'express';
 
 //#region  Base Font
@@ -9,7 +9,7 @@ const base64CairoFont = 'AAEAAAAQAQAABAAAR0RFRp+KvH0AAAI8AAACHEdQT1OS1A/9AABV+AA
 @Injectable()
 export class PdfGeneratorService {
     generateKycPdf(userData: any, res: Response) {
-        const doc = new PDFkit({ size: 'A4' });
+        const doc = new PDFDocument({ size: 'A4' });
 
         // Set the PDF headers
         res.setHeader('Content-Type', 'application/pdf');
@@ -28,7 +28,8 @@ export class PdfGeneratorService {
         doc.moveDown();
 
         // Add user data with professional formatting
-        doc.fontSize(14).text(`Arabic Name:`, { continued: true }).font('ArabicFont').text(userData.ocrNidData.arabicName, { features: ['rtla'], y: doc.y - 10 });
+        doc.fontSize(14).text(`Arabic Name:`, { continued: true }).text(userData.ocrNidData.arabicName, { features: ['rtla'] });
+
         doc.fontSize(14).text(`English Name: ${userData.ocrNidData.englishName}`);
         doc.fontSize(14).text(`NID Number: ${userData.ocrNidData.nidNumber}`);
         doc.fontSize(14).text(`Nationality: ${userData.ocrNidData.nationality}`);

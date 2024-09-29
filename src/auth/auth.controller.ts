@@ -1,4 +1,5 @@
-import { Controller, Post, Body, HttpCode } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpException } from '@nestjs/common';
+import { AgentService } from '../core-system/agent.service';
 import { GenericResponseDto } from '../Common/generic-response.dto';
 import { OtpValidationResponse } from '../types/auth.types';
 
@@ -11,19 +12,32 @@ export class AuthController {
     private static checkNumber(number: string): boolean {
         return this.validNumbers.includes(number);
     }
+    constructor(private readonly agentService: AgentService) { }
+
 
 
     @Post('login')
     @HttpCode(200)
-    login(@Body() loginDto: { mobileNumber: string }): GenericResponseDto<boolean> {
+    async requestOtp(@Body('mobileNumber') mobileNumber: string): Promise<GenericResponseDto<any>> {
+        try {
+            // Call the AgentService to request OTP
+            return await this.agentService.requestOtp(mobileNumber);
+        } catch (error) {
+            console.log(error)
+            throw new HttpException('Unable to process OTP request', error.status || 500);
+        }
+    }
 
-        const isNumberValid = AuthController.checkNumber(loginDto.mobileNumber);
-
-        return new GenericResponseDto(
-            isNumberValid,
-            isNumberValid ? null : 'User does not exist',
-            isNumberValid
-        );
+    @Post('validate-otp')
+    @HttpCode(200)
+    async validatet_Otp(@Body() otpData: { otp: string; mobileNumber: string }): Promise<GenericResponseDto<any>> {
+        try {
+            // Call the AgentService to request OTP
+            return await this.agentService.validateOtp(otpData.mobileNumber, otpData.otp);
+        } catch (error) {
+            console.log(error)
+            throw new HttpException('Unable to process OTP request', error.status || 500);
+        }
     }
 
     @Post('validate-otp')
