@@ -14,7 +14,7 @@ export class UserController {
     private static readonly validNumbers = ['01010101010', '01111111111'];
     private static readonly validUserTokens = ['ValidUserToken1', 'ValidUserToken2'];
 
-    constructor(private readonly pdfGeneratorService: PdfGeneratorService) {}
+    constructor(private readonly pdfGeneratorService: PdfGeneratorService) { }
 
 
     @Post('get-user-data')
@@ -84,7 +84,7 @@ export class UserController {
 
     @Post('get-kyc-doc')
     @HttpCode(200)
-    GetKYCDoc(@Body() userData: { userToken: string }, @Headers('authorization') authHeader: string , @Res() res : Response): GenericResponseDto<boolean> {
+    GetKYCDoc(@Body() userData: { userToken: string }, @Headers('authorization') authHeader: string, @Res() res: Response): GenericResponseDto<boolean> | void {
         const token = authHeader?.split(' ')[1];
         if (!token || !UserController.validAgentTokens.includes(token)) {
             throw new UnauthorizedException();
@@ -95,21 +95,21 @@ export class UserController {
         // }
         const mockUserData = {
             ocrNidData: {
-              arabicName: 'محمد أحمد',
-              englishName: 'Mohammed Ahmed',
-              nidNumber: '1234567890',
-              nationality: 'Egyptian',
-              address: 'Cairo, Egypt',
-              gender: 'Male',
-              workOccupation: 'Engineer',
-              workAddress: 'Tech Company, Alexandria',
-              birthdate: '1990-01-01',
-              placeOfBirth: 'Alexandria',
-              phoneNumber: '01234567890',
+                arabicName: 'محمد أحمد',
+                englishName: 'Mohammed Ahmed',
+                nidNumber: '1234567890',
+                nationality: 'Egyptian',
+                address: 'Cairo, Egypt',
+                gender: 'Male',
+                workOccupation: 'Engineer',
+                workAddress: 'Tech Company, Alexandria',
+                birthdate: '1990-01-01',
+                placeOfBirth: 'Alexandria',
+                phoneNumber: '01234567890',
             },
-          };
-      
-          // Call the service to generate the PDF, and stream it back in the response
-          this.pdfGeneratorService.generateKycPdf(mockUserData, res);
-        }
+        };
+
+        // Call the service to generate the PDF, and stream it back in the response
+        this.pdfGeneratorService.generateKycPdf(mockUserData, res);
+    }
 }
